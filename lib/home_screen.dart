@@ -9,7 +9,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  late QRViewController controller;
+  QRViewController? controller;
+  Barcode? result;
+
+  String describeEnum(Object enumValue) {
+    final String description = enumValue.toString();
+    final int indexOfDot = description.indexOf('.');
+    return (indexOfDot != -1)
+        ? description.substring(indexOfDot + 1)
+        : description;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +45,22 @@ class _HomeScreenState extends State<HomeScreen> {
             child: QRView(
               key: qrKey,
               onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                borderColor: Colors.red,
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 250,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: (result != null)
+                  ? Text(
+                      'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
+                  : Text('Scan a code'),
             ),
           ),
         ],
@@ -46,12 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      // Handle the scanned QR code data, e.g., extract the URL and navigate
-      if (scanData != null && scanData.code.isNotEmpty) {
+      setState(() {
+        result = scanData;
+      });
+      if (scanData.code!.isNotEmpty) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultScreen(resultUrl: scanData.code),
+            builder: (context) => ResultScreen(resultUrl: scanData.code!),
           ),
         );
       }
@@ -60,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    controller.dispose();
+    controller?.dispose();
     super.dispose();
   }
 }
