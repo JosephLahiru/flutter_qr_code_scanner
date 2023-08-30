@@ -1,0 +1,1 @@
+# flutter_qr_code_scanner
