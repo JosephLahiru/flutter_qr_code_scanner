@@ -75,12 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
         result = scanData;
       });
       if (scanData.code!.isNotEmpty) {
+        controller.pauseCamera();
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ResultScreen(resultUrl: scanData.code!),
           ),
-        );
+        ).then((value) {
+          controller.resumeCamera();
+        });
       }
     });
   }
